@@ -1,10 +1,6 @@
 defmodule TodoList do
   defstruct auto_id: 1, entries: %{}
 
-  def new() do
-    %TodoList{}
-  end
-
   def new(entries \\ []) do
     Enum.reduce(entries, %TodoList{}, fn entry, todo_list -> add_entry(todo_list, entry) end)
   end
@@ -40,5 +36,20 @@ defmodule TodoList do
 
   def delete_entry(todo_list, id) do
     %TodoList{todo_list | entries: Map.delete(todo_list.entries, id)}
+  end
+end
+
+defmodule TodoList.CsvImporter do
+  def import(filename) do
+    File.stream!(filename)
+    |> Stream.map(fn line -> String.trim(line) |> String.split(",") end)
+    |> Stream.map(fn [date, title] -> [String.split(date, "/"), title] end)
+    |> Stream.map(fn [date, title] -> parse_entry(date, title) end)
+    |> TodoList.new()
+  end
+
+  def parse_entry(date, title) do
+    [year, month, day] = date
+    %{date: Date.from_iso8601!("#{year}-#{month}-#{day}"), title: title}
   end
 end
