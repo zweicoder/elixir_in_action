@@ -53,3 +53,14 @@ defmodule TodoList.CsvImporter do
     %{date: Date.from_iso8601!("#{year}-#{month}-#{day}"), title: title}
   end
 end
+
+defimpl Collectable, for: TodoList do
+  def into(original) do
+    collector_fun = fn
+      acc, {:cont, entry} -> TodoList.add_entry(acc, entry)
+      acc, :done -> acc
+      _acc, :halt -> :ok
+    end
+    {original, collector_fun}
+  end
+end
