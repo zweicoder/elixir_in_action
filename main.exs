@@ -1,13 +1,12 @@
 defmodule Main do
   def run() do
-    Registry.start_link(name: :my_registry, keys: :unique)
+    run_query = fn query_def ->
+       Process.sleep(2000)
+      "[result] #{query_def}"
+    end
 
-    spawn(fn ->
-      Registry.register(:my_registry, {:db_worker, 1}, nil)
-
-      receive do
-        msg -> IO.puts("[db_worker] #{inspect(msg)}")
-      end
-    end)
+    1..5
+    |> Enum.map(&Task.async(fn -> run_query.("query #{&1}") end))
+    |> Enum.map(&Task.await/1)
   end
 end
